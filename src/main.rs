@@ -2,7 +2,7 @@
 use std::io;
 use std::path::PathBuf;
 fn main() {
-    let mut path_buf = &mut PathBuf::new();
+    let path_buf = &mut PathBuf::new();
     let path_dark = input_path("Enter Path to Dark Wallpaper", path_buf);
     println!("{:?}", path_dark);
 }
