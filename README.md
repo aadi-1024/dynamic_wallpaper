@@ -15,7 +15,7 @@ $ ~ git clone https://github.com/jov-1024/dynamic_wallpaper
 
 $ ~ cd dynamic_wallpaper
 
-$ ~ sudo ./install.sh
+$ ~ ./install.sh
 ```
 
 TODO:
