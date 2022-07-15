@@ -2,5 +2,4 @@
 name = "dynamic_wallpaper"
 version = "0.1.0"
 edition = "2021"
-authors = "jov-1024"
 description = "Dynamic Wallpaper maker for GNOME 42+"
