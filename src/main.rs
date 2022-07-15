@@ -1,9 +1,9 @@
-use std::fs::{File, DirBuilder};
-use std::io;
+use std::fs::{DirBuilder, self};
+use std::io::{Write, self};
 use std::path::PathBuf;
 use std::env;
 
-struct Wall_data<'a> {
+struct WallData<'a> {
     m_dark: &'a PathBuf,
     m_light: &'a PathBuf,
     m_name: &'a str,
@@ -18,18 +18,19 @@ fn main() {
     input_path("Enter Path to Light Wallpaper", &mut path_light);
     _verify_image(&path_light);
 
+    println!("Enter Name of the Wallpaper");
     let mut name = String::new();
     io::stdin()
         .read_line(&mut name)
         .expect("Couldnt read name");
 
-    let mut wall = Wall_data {
+    let wall = WallData {
         m_dark: &path_dark,
         m_light: &path_light,
         m_name: &name,
     };
     
-    wall._verify();
+    wall.make();
 }
 
 //takes input path and returns a PathBuf
@@ -65,8 +66,9 @@ fn _verify_image(path_obj: &PathBuf) -> () {
     }
 }
 
-impl<'a> Wall_data<'a> {
-    pub fn _verify(&self) {
+impl<'a> WallData<'a> {
+    //verifies that the struct is ready to be used 
+    fn _verify(&self) {
         let home = match env::var("HOME") {
             Ok(t) => t,
             Err(e) => panic!("{}", e),
@@ -94,10 +96,25 @@ impl<'a> Wall_data<'a> {
                                 ()
                             }
                         },
-                        Err(e) => ()
+                        Err(_e) => ()
                     }
                 }
             }
+            Err(e) => panic!("{}", e),
+        }
+    }
+
+    pub fn make(self) {
+        self._verify();
+        let xml_data = format!("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><!DOCTYPE wallpapers SYSTEM \"gnome-wp-list.dtd\"><wallpapers><wallpaper deleted=\"false\"><name>{}</name><filename>{}</filename><filename-dark>{}</filename-dark><options>zoom</options><shade_type>solid</shade_type><pcolor>#3465a4</pcolor><scolor>#000000</scolor></wallpaper></wallpapers>", self.m_name, self.m_light.to_str().expect("Couldnt convert m_light to str"), self.m_dark.to_str().expect("Couldnt convert m_dark to str"));
+        let home = match env::var("HOME") {
+            Ok(t) => t,
+            Err(e) => panic!("{}", e),
+        };
+        let xml_path = PathBuf::from(format!("{}/.local/share/gnome-background-properties/{}.xml", home, self.m_name.trim()));
+        let mut xml = fs::File::create(xml_path).expect("Couldnt create the xml");
+        match xml.write_all(xml_data.as_bytes()) {
+            Ok(_) => println!("Done! You can set wallpaper from the settings"),
             Err(e) => panic!("{}", e),
         }
     }

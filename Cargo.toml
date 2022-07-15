@@ -2,7 +2,5 @@
 name = "dynamic_wallpaper"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+authors = "jov-1024"
+description = "Dynamic Wallpaper maker for GNOME 42+"
