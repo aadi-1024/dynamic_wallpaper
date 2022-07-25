@@ -2,6 +2,10 @@ use std::fs::{DirBuilder, self};
 use std::io::{Write, self};
 use std::path::PathBuf;
 use std::env;
+use std::process;
+
+const FAILURE: i32 = 1;
+const SUCCESS: i32 = 0;
 
 struct WallData<'a> {
     m_dark: &'a PathBuf,
@@ -11,12 +15,24 @@ struct WallData<'a> {
 
 fn main() {
     let mut path_dark = PathBuf::new();
-    input_path("Enter Path to Dark Wallpaper", &mut path_dark);
-    _verify_image(&path_dark);
+    match input_path("Enter Path to Dark Wallpaper", &mut path_dark) {
+        Ok(_) => (),
+        Err(_) => {
+            println!("Couldnt read path from stdin");
+            process::exit(FAILURE);
+        },
+    };
+    verify_image(&path_dark);
 
     let mut path_light = PathBuf::new();
-    input_path("Enter Path to Light Wallpaper", &mut path_light);
-    _verify_image(&path_light);
+    match input_path("Enter Path to Light Wallpaper", &mut path_light) {
+        Ok(_) => (),
+        Err(_) => {
+            println!("Couldnt read path from stdin");
+            process::exit(FAILURE);
+        },
+    };
+    verify_image(&path_light);
 
     println!("Enter Name of the Wallpaper");
     let mut name = String::new();
@@ -34,19 +50,20 @@ fn main() {
 }
 
 //takes input path and returns a PathBuf
-fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> () {
+fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> Result<(), std::io::Error> {
     println!("{}", question);
+
     let mut buf = String::new();
-    io::stdin()
-        .read_line(&mut buf)
-        .expect("Couldnt properly read input");
+    io::stdin().read_line(&mut buf)?;
     buf = buf.trim().to_string();
+
     path_obj.clear();
     *path_obj = PathBuf::from(buf);
+    Ok(())
 }
 
 //checks whether the provided path is valid and leads to a jpg, jpeg or png
-fn _verify_image(path_obj: &PathBuf) -> () { 
+fn verify_image(path_obj: &PathBuf) -> () { 
     if !path_obj.exists() {
         panic!("File doesnt exist");
     } else {
