@@ -3,9 +3,9 @@ use std::io::{Write, self};
 use std::path::PathBuf;
 use std::env;
 use std::process;
+use std::error::Error;
 
 const FAILURE: i32 = 1;
-const SUCCESS: i32 = 0;
 
 struct WallData<'a> {
     m_dark: &'a PathBuf,
@@ -22,23 +22,38 @@ fn main() {
             process::exit(FAILURE);
         },
     };
-    verify_image(&path_dark);
+    match verify_image(&path_dark) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error: {}", e);
+            process::exit(FAILURE);
+        }
+    }
 
     let mut path_light = PathBuf::new();
     match input_path("Enter Path to Light Wallpaper", &mut path_light) {
         Ok(_) => (),
-        Err(_) => {
-            println!("Couldnt read path from stdin");
+        Err(e) => {
+            println!("Error: {}", e);
             process::exit(FAILURE);
         },
     };
-    verify_image(&path_light);
+    match verify_image(&path_light) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error: {}", e);
+            process::exit(FAILURE);
+        }
+    }
 
     println!("Enter Name of the Wallpaper");
     let mut name = String::new();
     io::stdin()
         .read_line(&mut name)
-        .expect("Couldnt read name");
+        .unwrap_or_else(|err| {
+            println!("Error: {}", err);
+            process::exit(FAILURE);
+        });
 
     let wall = WallData {
         m_dark: &path_dark,
@@ -50,7 +65,7 @@ fn main() {
 }
 
 //takes input path and returns a PathBuf
-fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> Result<(), std::io::Error> {
+fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> Result<(), Box<dyn Error>> {
     println!("{}", question);
 
     let mut buf = String::new();
@@ -63,22 +78,22 @@ fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> Result<(), std::
 }
 
 //checks whether the provided path is valid and leads to a jpg, jpeg or png
-fn verify_image(path_obj: &PathBuf) -> () { 
+fn verify_image(path_obj: &PathBuf) -> Result<(), &'static str> { 
     if !path_obj.exists() {
-        panic!("File doesnt exist");
+        Err("File doesnt exist")
     } else {
         if let Some(t) = path_obj.extension() {
             if let Some(x) = t.to_str() {
                 match x {
-                    "png" | "jpg" | "jpeg" => (),
-                    _ => panic!("Not a supported file format"),
+                    "png" | "jpg" | "jpeg" => Ok(()),
+                    _ => Err("Not a supported file format"),
                 }
             }
             else {
-                panic!();
+                Err("Empty string returned")
             }
         } else {
-            panic!("Path specified doesnt exist");
+            Err("No file extension found")
         }
     }
 }
