@@ -114,37 +114,50 @@ impl<'a> WallData<'a> {
         let name = self.m_name;
         let xml_path = &PathBuf::from(temp);
 
-        match xml_path.exists() {
-            true => (),
-            false => match DirBuilder::new().create(xml_path) {
-                Ok(_) => (),
-                Err(e) => Err(e),
-            }
+        // match xml_path.exists() {
+        //     true => (),
+        //     false => if let Err(e) = DirBuilder::new().create(xml_path) {
+        //         Err(e)
+        //     }
+        // }
+        if !xml_path.exists() {
+            DirBuilder::new().create(xml_path)?
         }
-        match std::fs::read_dir(xml_path) {
-            Ok(f) => {
-                for i in f {
-                    match i {
-                        Ok(t) => {
-                            if let Some(t) = t.file_name().to_str() {
-                                if t == format!("{}.xml", name.trim()) {
-                                    Err("Wallpaper with the name already exists")
-                                }
-                            } else {
-                                ()
-                            }
-                        },
-                        Err(_e) => ()
-                    }
+        // match std::fs::read_dir(xml_path) { // rewriting because
+        //     Ok(f) => {                      // shit code
+        //         for i in f {
+        //             match i {
+        //                 Ok(t) => {
+        //                     if let Some(t) = t.file_name().to_str() {
+        //                         if t == format!("{}.xml", name.trim()) {
+        //                             Err("Wallpaper with the name already exists")
+        //                         }
+        //                     } else {
+        //                         ()
+        //                     }
+        //                 },
+        //                 Err(_e) => ()
+        //             }
+        //         }
+        //     }
+        //     Err(e) => Err(e),
+        // }
+        let f = fs::read_dir(xml_path)?;
+        for i in f {
+            let j = i?;
+            if let Some(t) = j.file_name().to_str() {
+                if format!("{}.xml", name.trim()) == t {
+                    Err(format!("Wallpaper named {} already exists", name.trim()).as_str())?
                 }
             }
-            Err(e) => Err(e),
         }
         Ok(())
     }
 
     pub fn make(self) -> Result<(), Box<dyn Error>>{
-        self.verify();
+        if let Err(e) = self.verify() {
+            return Err(e);
+        }
         let xml_data = format!("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><!DOCTYPE wallpapers SYSTEM \"gnome-wp-list.dtd\"><wallpapers><wallpaper deleted=\"false\"><name>{}</name><filename>{}</filename><filename-dark>{}</filename-dark><options>zoom</options><shade_type>solid</shade_type><pcolor>#3465a4</pcolor><scolor>#000000</scolor></wallpaper></wallpapers>", self.m_name, self.m_light.to_str().expect("Couldnt convert m_light to str"), self.m_dark.to_str().expect("Couldnt convert m_dark to str"));
         let home = env::var("HOME")?;
         let xml_path = PathBuf::from(format!("{}/.local/share/gnome-background-properties/{}.xml", home, self.m_name.trim()));
