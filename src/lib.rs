@@ -5,26 +5,11 @@ use std::env;
 use std::process;
 use std::error::Error;
 
-const FAILURE: i32 = 1;
-
 //allows to group the wallpaper metadata in a single object
 pub struct WallData<'a> {
     dark: &'a PathBuf,
     light: &'a PathBuf,
     name: &'a str,
-}
-
-// asks for the input path and creates a PathBuf
-pub fn input_path<'a>(question: &str, path_obj: &'a mut PathBuf) -> Result<(), Box<dyn Error>> {
-    println!("{}", question);
-
-    let mut buf = String::new();
-    io::stdin().read_line(&mut buf)?;
-    buf = buf.trim().to_string();
-
-    // path_obj.clear(); redundant
-    *path_obj = PathBuf::from(buf);
-    Ok(())
 }
 
 //verifies whether the provided path actually corresponds to a supported file
@@ -91,59 +76,36 @@ impl<'a> WallData<'a> {
 }
 
 //sort of a bootstrapper
-pub fn run() { 
-    let mut path_dark = PathBuf::new();
-    match input_path("Enter Path to dark Wallpaper", &mut path_dark) {
-        Ok(_) => (),
-        Err(e) => {
-            println!("Error: {}", e);
-            process::exit(FAILURE);
-        },
-    };
+pub fn run(args: Vec<String>) { 
+    let path_dark = PathBuf::from(&args[1]);
     match verify_image(&path_dark) {
         Ok(_) => (),
         Err(e) => {
             println!("Error: {}", e);
-            process::exit(FAILURE);
+            process::exit(1);
         }
     }
 
-    let mut path_light = PathBuf::new();
-    match input_path("Enter Path to Light Wallpaper", &mut path_light) {
-        Ok(_) => (),
-        Err(e) => {
-            println!("Error: {}", e);
-            process::exit(FAILURE);
-        },
-    };
+    let path_light = PathBuf::from(&args[2]);
     match verify_image(&path_light) {
         Ok(_) => (),
         Err(e) => {
             println!("Error: {}", e);
-            process::exit(FAILURE);
+            process::exit(1);
         }
     }
-
-    println!("Enter Name of the Wallpaper");
-    let mut name = String::new();
-    io::stdin()
-        .read_line(&mut name)
-        .unwrap_or_else(|err| {
-            println!("Error: {}", err);
-            process::exit(FAILURE);
-        });
 
     let wall = WallData {
         dark: &path_dark,
         light: &path_light,
-        name: &name,
+        name: &args[3],
     };
 
     match wall.make() {
         Ok(_) => println!("Done! You can set the wallpaper now"),
         Err(e) => {
             println!("Error: {}", e);
-            process::exit(FAILURE);
+            process::exit(1);
         }
     }
 }
