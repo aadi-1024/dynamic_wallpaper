@@ -17,6 +17,12 @@ $ ~ cd dynamic_wallpaper
 
 $ ~ ./install.sh
 ```
+Usage:
+```bash
+$ ~ dynamic_wallpaper {DARK_WALLPAPER} {LIGHT_WALLPAPER} {NAME}
+```
+
+Do note, the name needs to be unique.
 
 TODO:
 - ~~Finish it~~ Done
