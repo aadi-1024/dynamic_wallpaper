@@ -1,5 +1,5 @@
 use std::fs::{DirBuilder, self};
-use std::io::{Write, self};
+use std::io::{Write};
 use std::path::PathBuf;
 use std::env;
 use std::process;
@@ -66,7 +66,20 @@ impl<'a> WallData<'a> {
         if let Err(e) = self.verify() {
             return Err(e);
         }
-        let xml_data = format!("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><!DOCTYPE wallpapers SYSTEM \"gnome-wp-list.dtd\"><wallpapers><wallpaper deleted=\"false\"><name>{}</name><filename>{}</filename><filename-dark>{}</filename-dark><options>zoom</options><shade_type>solid</shade_type><pcolor>#3465a4</pcolor><scolor>#000000</scolor></wallpaper></wallpapers>", self.name, self.light.to_str().expect("Couldnt convert light to str"), self.dark.to_str().expect("Couldnt convert dark to str"));
+        let xml_data = format!(
+            r#"<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
+<wallpapers>
+<wallpaper deleted="false">
+    <name>{}</name>
+    <filename>{}</filename>
+    <filename-dark>{}</filename-dark>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#3465a4</pcolor>
+    <scolor>#000000</scolor>
+    </wallpaper>
+</wallpapers>"#, self.name, self.light.to_str().expect("Couldnt convert light to str"), self.dark.to_str().expect("Couldnt convert dark to str"));
         let home = env::var("HOME")?;
         let xml_path = PathBuf::from(format!("{}/.local/share/gnome-background-properties/{}.xml", home, self.name.trim()));
         let mut xml = fs::File::create(xml_path).expect("Couldnt create the xml");
